@@ -3,8 +3,8 @@ import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
 export async function middleware(request: NextRequest) {
-  // Only protect admin routes
-  if (!request.nextUrl.pathname.startsWith('/admin')) {
+  // Only protect admin routes (exclude login page)
+  if (!request.nextUrl.pathname.startsWith('/admin') || request.nextUrl.pathname === '/admin/login') {
     return NextResponse.next();
   }
 
