@@ -3,14 +3,16 @@
 부산 로컬 D2C 꽃배달 서비스 MVP. 모바일 퍼스트, 토스식 UX.
 상세 PRD: `PRD.md` 참조 (비즈니스 모델, 고객 심리, DB 스키마 등)
 
-> 브랜드 이력: 미션꽃파서블 → 부타닉 가든 → **꽃부름** (현재)
 > "꽃 + 부름" = 꽃을 부르다(주문하다). 심부름 오마주 — 부르면 오는 당일 배달.
 
-## 현재 상태: Phase 1 MVP 완성 (Sprint 1~3 전체 완료)
+## 현재 상태: Phase 1 MVP — Vercel 배포 + Supabase 연동 완료
 
-데모 모드로 전체 기능 동작 확인 완료. Supabase/API 키 연결 후 실제 배포 가능.
-- 빌드: `next build` 성공, 26개 라우트 전체 정상
-- A-to-Z 플로우 테스트 완료
+- **프로덕션 URL**: https://kkotbureum.vercel.app/
+- **GitHub**: https://github.com/Daniel-Ko-Busan/kkotbureum (master 브랜치)
+- **Supabase**: 연결 완료 (마이그레이션 적용, 카테고리 6개 + 상품 12개 + 주문 18건 + 관리자 1명)
+- **Vercel 환경변수**: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` 등록 완료
+- **빌드**: `next build` 성공, 26개 라우트 전체 정상
+- **아직 미연결**: PortOne(데모값), Anthropic API(주석), Aligo SMS(주석)
 
 ## 기술 스택
 - **프레임워크**: Next.js 16 (App Router, Turbopack)
@@ -67,7 +69,7 @@ supabase/migrations/           # 001_initial_schema.sql
 ```
 
 ## 데모 모드
-Supabase/API 키 없이 전체 UI 테스트 가능.
+Supabase/API 키 없이 전체 UI 테스트 가능. (현재 프로덕션은 Supabase 연결 상태 → 데모 모드 OFF)
 - `DEMO_MODE` 플래그: `NEXT_PUBLIC_SUPABASE_URL`이 없거나 `https://demo.supabase.co`일 때 활성화
 - `globalThis` 패턴으로 Next.js dev 모듈 재평가 시에도 데모 데이터(주문 상태 등) 유지
 - 데모 데이터: 카테고리 6개, 상품 8개, 주문 18건 (상태별 3건), 상태 이력
@@ -118,4 +120,13 @@ npm run start     # 프로덕션 서버
 - Tailwind v4: `globals.css`의 `@theme inline`에서 토큰 정의
 - Next.js 16: `params`/`searchParams`는 Promise 타입 → `await params` 필요
 - 다음 주소 API 스크립트: `layout.tsx`의 `<body>` 하단에 async 로드
-- middleware.ts deprecated 경고 (proxy 전환 예정, 기능 영향 없음)
+- middleware.ts: `/admin/login`은 인증 스킵, 나머지 /admin/* 은 service role key로 admin_users 확인
+- Vercel 환경변수 변경 시 **Build Cache 해제 후 Redeploy** 필요 (`NEXT_PUBLIC_*`은 빌드 시점 임베딩)
+
+## 2026-02-26 작업 이력
+- GitHub 레포 생성 + Vercel 배포 파이프라인 구축
+- Supabase 환경변수 Vercel 등록 + 프로덕션 연동 확인
+- middleware.ts 수정: /admin/login 인증 스킵 + service role key로 admin_users RLS 우회
+- 관리자 테스트 계정 생성 (Supabase Auth + admin_users)
+- 상품 12개 등록 (6카테고리 × 2개, 미션별 맞춤 구성)
+- 주문 샘플 18건 등록 (상태별 3건 + 상태 이력)

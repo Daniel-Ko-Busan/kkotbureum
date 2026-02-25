@@ -1,14 +1,20 @@
-# 부타닉 가든 (Butanic Garden) — Phase 1 MVP
+# 꽃부름 (Kkotbureum) — Phase 1 MVP
 
 ## Context
 
 부산 로컬 꽃배달 서비스 MVP. 모두싸인 초기 멤버로 PMF → ARR 120억 달성을 경험한 창업자가, 가족/동료 네트워크(퍼포먼스 마케터 아내, 꽃사업 경험 디자이너, 풀스택 개발자 형, 부산 꽃집 3곳)를 활용하여 "부산 최초의 디지털 네이티브 꽃 브랜드"를 만드는 것이 목표.
 
+> "꽃 + 부름" = 꽃을 부르다(주문하다). 심부름 오마주 — 부르면 오는 당일 배달.
+
 전국 위탁 판매 시장은 3,000개+ 업체가 경쟁 중이고 키워드 CPC가 건당 2,000~10,000원으로 비현실적. 반면 부산 로컬 꽃배달의 디지털 마케팅/UX는 거의 비어있어 (인스타 1등이 5,390 팔로워), 여기서 포지셔닝.
 
 ## 현재 상태
 
-> **Phase 1 MVP 개발 완료** (Sprint 1~3). 배포 전 사전 준비 단계.
+> **Phase 1 MVP 배포 완료** (Sprint 1~3 + 인프라 셋업).
+> - 프로덕션: https://kkotbureum.vercel.app/
+> - GitHub: https://github.com/Daniel-Ko-Busan/kkotbureum (master)
+> - Supabase 연동 완료 (카테고리 6, 상품 12, 주문 샘플 18건, 관리자 1명)
+> - 미연결: PortOne 실결제, Anthropic API, Aligo SMS
 
 ---
 
@@ -194,7 +200,7 @@ CREATE TABLE products (
 -- 주문 (1주문 = 1상품, 상품 정보 직접 스냅샷)
 CREATE TABLE orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  order_number TEXT UNIQUE NOT NULL,    -- KP-YYYYMMDD-NNNN (트리거 자동생성)
+  order_number TEXT UNIQUE NOT NULL,    -- BU-YYYYMMDD-NNNN (트리거 자동생성)
   sender_name TEXT NOT NULL,
   sender_phone TEXT NOT NULL,
   recipient_name TEXT NOT NULL,
@@ -268,8 +274,8 @@ DECLARE today_count INT; today_str TEXT;
 BEGIN
   today_str := to_char(now(), 'YYYYMMDD');
   SELECT COUNT(*) + 1 INTO today_count FROM orders
-    WHERE order_number LIKE 'KP-' || today_str || '-%';
-  NEW.order_number := 'KP-' || today_str || '-' || lpad(today_count::TEXT, 4, '0');
+    WHERE order_number LIKE 'BU-' || today_str || '-%';
+  NEW.order_number := 'BU-' || today_str || '-' || lpad(today_count::TEXT, 4, '0');
   RETURN NEW;
 END; $$ LANGUAGE plpgsql;
 
@@ -470,18 +476,23 @@ Shadow:   0 2px 8px rgba(0,0,0,0.08)
 
 ---
 
-## 배포 전 사전 준비 (현재 단계)
+## 배포 및 사전 준비 상태
 
+- [x] Supabase 프로젝트 생성 + 마이그레이션 실행 + RLS 적용
+- [x] Vercel 배포 + 환경변수 설정 (SUPABASE URL/ANON_KEY/SERVICE_ROLE_KEY)
+- [x] GitHub 레포 생성 + Vercel 자동 배포 파이프라인 구축
+- [x] 관리자 계정 생성 (Supabase Auth + admin_users)
+- [x] 상품 데이터 12개 등록 (6카테고리 × 2개, 미션별 맞춤)
+- [x] 주문 샘플 18건 등록 (상태별 3건 + 상태 이력)
 - [ ] 사업자등록 (홈택스)
 - [ ] 통신판매업 신고 (정부24, 3~7일)
-- [ ] PortOne 가입 + 토스페이먼츠 PG 연동
-- [ ] Supabase 프로젝트 생성 + 마이그레이션 실행
-- [ ] Vercel Pro 가입 ($20/월) + 환경변수 설정 + 배포
-- [ ] Anthropic API 키 발급
-- [ ] Aligo 가입 + 발신번호 등록
-- [ ] 도메인 구매 + 연결 (선택)
-- [ ] 실제 상품 사진 촬영 + 상품 데이터 등록
+- [ ] PortOne 가입 + 토스페이먼츠 PG 연동 (현재 데모값)
+- [ ] Anthropic API 키 발급 (현재 데모 메시지 사용)
+- [ ] Aligo 가입 + 발신번호 등록 (현재 콘솔 로그)
+- [ ] 도메인 구매 + 연결 (선택, 현재 kkotbureum.vercel.app)
+- [ ] 실제 상품 사진 촬영 + 이미지 업로드 (현재 이미지 없음, 이모지 폴백)
 - [ ] 모바일 실기기 테스트 (iPhone Safari, Android Chrome)
+- [ ] NEXT_PUBLIC_SITE_URL을 Vercel URL로 업데이트
 
 ---
 
@@ -512,16 +523,18 @@ Shadow:   0 2px 8px rgba(0,0,0,0.08)
 - [x] 모든 Supabase 테이블 RLS 활성화
 - [x] SUPABASE_SERVICE_ROLE_KEY 서버만 사용
 - [x] 결제 금액 서버 측 검증 (4단계)
-- [x] 관리자 라우트 미들웨어 보호
+- [x] 관리자 라우트 미들웨어 보호 (/admin/login 스킵, service role key로 admin_users 확인)
 - [x] 보안 헤더 (X-Frame-Options, X-Content-Type-Options 등)
 - [x] poweredByHeader 비활성화
+- [x] Supabase RLS 실제 환경 동작 확인 (프로덕션 배포 검증 완료)
 - [ ] AI 엔드포인트 rate limiting (배포 후 적용)
-- [ ] Supabase RLS 실제 환경 테스트
 
 ## 검증 방법
 
 1. ✅ 데모 모드 전체 플로우 (빌드 + A-to-Z 테스트 완료)
-2. 모바일 실기기 브라우징 (iPhone Safari, Android Chrome) ← 배포 후
-3. 전체 주문 플로우 (PortOne 테스트 모드 결제) ← 배포 후
-4. 관리자 주문 상태 변경 → SMS 수신 확인 ← Aligo 연동 후
-5. 실제 상품 사진으로 모바일 UX 확인 ← 상품 등록 후
+2. ✅ Vercel 프로덕션 배포 + Supabase 연동 동작 확인
+3. ✅ 관리자 로그인 + 대시보드 + 주문/상품 관리 동작 확인
+4. 모바일 실기기 브라우징 (iPhone Safari, Android Chrome) ← 다음 단계
+5. 전체 주문 플로우 (PortOne 테스트 모드 결제) ← PG 연동 후
+6. 관리자 주문 상태 변경 → SMS 수신 확인 ← Aligo 연동 후
+7. 실제 상품 사진으로 모바일 UX 확인 ← 사진 촬영 후
