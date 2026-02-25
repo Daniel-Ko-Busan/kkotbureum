@@ -1,5 +1,5 @@
 {
-  "name": "kkot-possible-temp",
+  "name": "kkot-possible",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,9 +9,16 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^1.2.12",
+    "@portone/browser-sdk": "^0.1.3",
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.97.0",
+    "ai": "^4.3.19",
+    "date-fns": "^4.1.0",
     "next": "16.1.6",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -20,6 +27,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "supabase": "^2.76.14",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
