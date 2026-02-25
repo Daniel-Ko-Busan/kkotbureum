@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { createClient } from '@supabase/supabase-js';
 
 export async function middleware(request: NextRequest) {
   // Only protect admin routes (exclude login page)
@@ -47,8 +48,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/admin/login', request.url));
   }
 
-  // Check if user is admin
-  const { data: admin } = await supabase
+  // Check if user is admin (service role to bypass RLS)
+  const serviceClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { data: admin } = await serviceClient
     .from('admin_users')
     .select('id')
     .eq('auth_id', user.id)
