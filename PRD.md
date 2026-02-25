@@ -75,7 +75,7 @@
 ### 프로젝트 구조 (현재)
 
 ```
-kkot-possible/
+kkotbureum/
 ├── src/
 │   ├── app/
 │   │   ├── layout.tsx                  # 루트 레이아웃 (SEO 메타, Pretendard)
